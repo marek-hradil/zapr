@@ -1,0 +1,28 @@
+---
+image: gitlab.fi.muni.cz:5050/xstill/ci-images/haskell-ib015:v2022.0.1
+
+before_script:
+    - cat /etc/os-release
+    - ghc --version
+    - cabal --version
+    - pandoc --version
+    - pdftex --version
+    - xelatex --version
+    - pygmentize -V
+
+typeset:
+  stage: build
+  script:
+    - make thesis.pdf
+  when: always
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\bno[-_]?(ci|build|pdf)\b/
+  artifacts:
+      name: "thesis.pdf"
+      paths:
+          - thesis.pdf
+      when: on_success
+      expire_in: 1 week
+  tags:
+      - shared-fi
