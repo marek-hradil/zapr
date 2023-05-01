@@ -1,0 +1,34 @@
+% vim: spell spelllang=cs
+\chapter{Použití šablony}
+
+Je to tak triviální, až se z~toho člověku obklopenému všemožnými bloated
+nesmysly chce brečet.
+
+\begin{enumerate}
+    \item Stáhněte si kostru do adresáře na závěrečnou práci.
+    \item Otevřete \texttt{thesis.tex} a~vyhledávejte text \texttt{XXX}, jímž
+    jsou označeny části, které určitě budete chtít upravit.
+    \begin{itemize}
+        \item Surprise twist! Části \texttt{XXX} vás mohou poslat do jiných
+        souborů, v~nichž se nachází jiné části \texttt{XXX}, které budete chtít
+        upravit! Říká se tomu rekurse a~je to princip a~nástroj, bez jehož
+        pochopení se do psaní své nezáživné práce možná radši ani nepouštějte.
+        \item Chcete změnit něco, co nemá \texttt{XXX}? Nelíbí se vám můj výběr
+        barev? Toužíte po jiných okrajích? No tak to změňte, ta kostra se z~toho
+        (asi) neposere.\footnote{ono teda co v~\LaTeX u se sem tam „samo“ neposere}
+    \end{itemize}
+    \item Obsah si narvěte, kam chcete; já navrhuji podadresář
+    \texttt{chapters}. Jistě pochopíte, kam ho v~hlavním souboru zařadit.
+    Přiložený makefile s~tím trochu počítá, ale přiložený makefile není svatý
+    a~upravit ho zvládnete i~se znalostmi z~PB152cv nebo kde se to teď učí.
+    \begin{itemize}
+        \item Při vkládání literatury chcete do \texttt{bibliography.bib}
+        yoinknout to, co se se jmenuje \emph{záznam BibTeX} nebo nějak podobně.
+    \end{itemize}
+    \item Jestli máte `latexmk`, tak už stačí `make` nebo (pro živé přesazování)
+    `make pvc`.
+    \item Před odevzdáním povypínejte pracovní věci (hlavně režim
+    \texttt{draft}).
+\end{enumerate}
+
+Odtud už to zvládnete sami, že?
