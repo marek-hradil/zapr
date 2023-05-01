@@ -1,4 +1,4 @@
-latexcmd = latexmk -pdf
+latexcmd = latexmk -shell-escape -pdf
 chapters = $(wildcard chapters/*.tex)
 deps = thesis.tex $(chapters)
 

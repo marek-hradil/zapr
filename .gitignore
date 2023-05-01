@@ -9,5 +9,6 @@
 *.run.xml
 *.tdo
 *.toc
+_minted-*
 
 thesis.pdf

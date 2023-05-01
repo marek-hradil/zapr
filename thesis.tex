@@ -23,6 +23,18 @@
 \usepackage[pass]{geometry}
 \usepackage{ifdraft}
 
+% Theorems – add your own environments, should you need them.
+\usepackage{amsthm}
+\newtheorem{theorem}{Věta}
+
+% Source code listings
+\usepackage[draft=false]{minted}
+\usemintedstyle{friendly}
+\newminted{hs}{autogobble,linenos}
+
+% Algorithms
+\usepackage[Algoritmus]{algorithm}
+
 \usepackage[ unicode=true,
              plainpages=false,
              pdfpagelabels,
@@ -70,7 +82,7 @@
 
 \setcounter{tocdepth}{2}
 \tableofcontents
-\thispagestyle{plain}
+\pagestyle{plain}
 
 \mainmatter
 % XXX: Organise your chapters however the fuck you like
@@ -79,7 +91,6 @@
 \appendix
 \input{chapters/archive}
 
-\pagestyle{plain}
 \backmatter
 \chapter{Literatura}
 \begingroup
