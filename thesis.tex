@@ -1,4 +1,4 @@
-% vim: tw=80 cc=81 spelllang=cs spell
+% vim: tw=80 cc=81 spelllang=en spell
 
 % XXX: Remove 'draft' in final version
 % XXX: Remove 'oneside' and 'openany' for printed version
@@ -8,13 +8,11 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
-% XXX: Guess what to change if you intend to write in English
-\usepackage[czech]{babel}
+\usepackage[english]{babel}
 
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{lmodern}
 \usepackage{enumitem}
-\usepackage{todonotes}
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{amssymb,amsmath}
@@ -25,7 +23,7 @@
 
 % Theorems – add your own environments, should you need them.
 \usepackage{amsthm}
-\newtheorem{theorem}{Věta}
+\newtheorem{theorem}{Theorem}
 
 % Source code listings
 \usepackage[draft=false]{minted}
@@ -43,20 +41,20 @@
              colorlinks=true,   % XXX: for PDF
              %colorlinks=false, % XXX: for print
              %hidelinks,        % XXX: for print
-             linkcolor={Sepia},
+             linkcolor={Black},
              citecolor={PineGreen},
              urlcolor={MidnightBlue},
            ]{hyperref}
 
 % XXX
 \hypersetup{
-    pdfauthor={Tvoje máma},
-    pdftitle={Tohle je zasraná šablona na diplomku},
-    pdfsubject={Bakalářská práce}
+    pdfauthor={Marek Hradil},
+    pdftitle={Counterfactual Explainability in Digital Histopathology},
+    pdfsubject={Bachelor thesis}
 }
 
 \usepackage[backend=bibtex8,
-            sortlocale=cs_CZ, % XXX
+            sortlocale=en_US,
             bibencoding=UTF8
             maxnames=100
            ]{biblatex}
@@ -75,9 +73,7 @@
 
 \begin{document}
 \frontmatter
-% XXX: Go edit titlepage.tex
 \input{titlepage}
-% XXX: Go edit frontmatter.tex
 \input{frontmatter}
 
 \setcounter{tocdepth}{2}
@@ -87,17 +83,13 @@
 \mainmatter
 % XXX: Organise your chapters however the fuck you like
 \input{chapters/intro}
-\input{chapters/usage}
 \appendix
-\input{chapters/archive}
 
 \backmatter
-\chapter{Literatura}
+\chapter{Literature}
 \begingroup
 \raggedright
 \printbibliography[heading=none]
 \endgroup
-
-\ifoptiondraft{\listoftodos}
 
 \end{document}
