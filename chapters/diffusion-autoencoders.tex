@@ -1,0 +1,57 @@
+\chapter{Generating Counterfactuals}
+
+\todo{
+    V tehle kapitole se bude vic do detailu probirat,
+    jak funguji diffusion modely a jakym zpusobem se pak daji
+    vyuzit na to, abychom vygenerovali couterfactuals.
+}
+
+\section{Latent Space}
+
+\todo{
+    Ctenar uz zna diffusion modely a v prechozi kapitole jsme
+    trosku nakousli problem s tim, ze ne vsechny vytvari latentni prostor.
+    Tady vysvetlime co latentni prostor je a proc je nam dobry -
+    skrz jeho manipulaci jsme schopni posouvat se mezi ruznymi
+    obrazky.
+}
+
+\section{DDPM and DDIM}
+
+\todo{
+    Nasledne popiseme, jak funguji DDPM (klasicka varianta difuze)
+    a proc presne netvori zadny latentni prostor - duvod je prave to, ze
+    obrazek se nevygeneruje najednou, ale v postupnych iteracich
+    a v tom, ze DDPM je v podstate Markov Chain, takze kvuli
+    nahodnosti neni latentni prostor tak stabilni.
+    To se da vyresit skrz DDIM, ktere jsou deterministicke, vic jako ODE
+    a pokryji problem s nahodnosti.
+}
+
+\section{DAE}
+
+\todo{
+    Problem s postupnymi iteracemi vyresime skrz DAE - dodame
+    CNN model, ktery latentni prostor vygeneruje "vedle".
+    Tady popiseme architekturu DAE.
+}
+
+\section{Incorporating Logistic Regression}
+
+\todo{
+    V tehle kapitole to slepime dohromady. DAE na vygenerovani encodings,
+    pak nad latentnim prostorem fitnuti regrese, jeji derivace a posun
+    v smeru gradientu, dokud nedosahnu urcite presnosti klasifikatoru.
+    Pak znovu pouziti DAE, aby z encodingu vytvorilo obrazek.
+}
+
+\section{CAV}
+
+\todo{
+    Tohle si nechavam jako pripadny pridavek. Trosku jsem koukal na
+    TCAV (Testing with Concept Activation Vectors) a je to v podstate
+    jen to, co uz delame, pouze na nejakym subsetu trenovacich dat.
+    Byli bychom teda schopni nejen generovat nejaky counterfactual,
+    ale takovy counterfactual, ktery obsahuje urcity koncept.
+    Uvidime jestli stihnu, ale nemuselo by byt slozite.
+}

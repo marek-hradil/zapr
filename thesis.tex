@@ -68,6 +68,8 @@
 %       v \ymref{somelabel}{kapitole} → v 5. kapitole
 \newcommand{\myref}[2]{\hyperref[#2]{#1~\ref*{#2}}}
 \newcommand{\ymref}[2]{\hyperref[#1]{\ref*{#1}.~#2}}
+\newcommand{\todo}[1]{\textbf{TODO:} #1}
+\newcommand{\citneeded}{\textbf{!Citation needed!}}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
@@ -83,6 +85,10 @@
 \mainmatter
 % XXX: Organise your chapters however the fuck you like
 \input{chapters/intro}
+\input{chapters/explainability-methods.tex}
+\input{chapters/diffusion-autoencoders.tex}
+\input{chapters/experiments.tex}
+\input{chapters/discussion.tex}
 \appendix
 
 \backmatter

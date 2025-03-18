@@ -1,4 +1,47 @@
 % vim: spell spelllang=en
 \chapter{Introduction}
 
-TODO: Introduction
+\todo{
+    Tady bude nějaký obecný úvod o tom, proč je potřeba explainabity,
+    tj. bez toho abychom rozuměli DNN je nemůžeme nasadit do safety-critical odvětví,
+    protože nejsme schopni dát bezpečnostní záruky.
+    Jedno z těch odvětví je histopatologie, kde by pokažená diagnostika pacienta mohla být
+    velký špatný.
+}
+
+\section{Digital Histopathology}
+
+\todo{
+    Tady proč dává smysl histopatologii digitalizovat a zavést do ní AI,
+    tj. lidi mají vysoký error rate, těžko se na velkých snímicích něco hledá,
+    velký rozdíl mezi juniorními a seniorními patology, zároveň AI systémy, které už do odvětví pronikly
+    snižují error rate \citneeded. Potom taky trochu o tom, jaké challenges zavádění AI
+    do medicíny má, že je důležité aby patologové byli schopni porozumět rozhodnutím a důvěřovali systému.
+}
+
+\section{Explainability}
+
+\todo{
+    Vysvětlitelnosti a interpretovatelnosti AI se zabírá obor explainability,
+    které sdružuje metody, které se snaží vysvětlit rozhodnutí AI systémů.
+    Dnes hlavní focus na hluboké neuronové sítě, kvůli probíhajícímu rozmachu.
+    Nějaký menší odstavec s přehledem co se všechno dá v explainability dělat,
+    co se zkoušelo a že ve výsledku jde nejvíc o to, jak to dává konečným uživatelům
+    smysl a jak jsou schopni na základě výsledku interpretovat, co se tam děje.
+}
+
+\section{Counterfactuals}
+
+\todo{
+    Jedna z metod je generování protipříkladů. Popíše se co to vlastně je,
+    jaký by měl být ideální end-result. Pak zmínit, že vysvětlitelnost z protipříkladů gut,
+    protože se zjistilo, že useři tomu rozumí \citneeded, tj. dává smysl to víc zkoumat a rozvíjet.
+}
+
+\section{Application to Histopathology}
+
+\todo{
+    Zamyslet se nad lepsim nazvem.
+    Něco o tom co jsou WSI, co jsou tiles, jaké máme v RationAI již fungující modely
+    a tím pádem, že ty counterfactuals budeme chtít generovat na tilech.
+}
