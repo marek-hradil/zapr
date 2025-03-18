@@ -1,0 +1,66 @@
+\chapter{Current Methods}
+
+\todo{
+    Promyslet, jestli vubec uvadet ty z dnesniho pohledu uz archaicke metody (WachterCF, LIME-C, SHAP-C),
+    resp. jestli je nejak nespojit do mensi kapitoly.
+
+    Tady bude prehled metod, ktere se daji vyuzit na counterfactuals.
+    Rad bych cerpal z toho, co jsem sepsal do youtracku.
+    \url{https://youtrack.rationai.cloud.e-infra.cz/articles/XAI-A-10/Research}
+    Tu taxonomii si beru z toho prvniho clanku. Zaroven rozebrat,
+    jaky je rozdil mezi intristic explainability a post-hoc explainability,
+    s tim ze se budeme soustredit jen na post-hoc.
+}
+
+\section{Instance-Centric}
+
+\todo{
+    WachterCF, jakozto prvni vic uvadena post-hoc metoda na generovani
+    counterfactuals.
+}
+
+\section{Regression-Centric}
+
+\todo{
+    LIME-C, jakozto metoda zalozena na LIME, coz je dost obecne znamy algoritmus.
+    Uprimne nevim, jestli se mi timhle chce travit cas. Realne to asi nikdy moc nebylo ve hre,
+    tohle si vybrat. Stejne jako SHAP-C. Zatim zminuju jen pro uplnost.
+}
+
+\section{Game Theory Centric}
+
+\todo{
+    SHAP-C
+}
+
+\section{Probability-Centric}
+
+\todo{
+    Tohle je to, z ceho jsme realne vybirali.
+}
+
+\subsection{Generative Adversarial Networks}
+
+\todo{
+    Vybrat z clanku pristupy k generovani skrz GAN.
+    Generator vs Discriminator, tezke na trenovani, ale docela dobre
+    a rychle nagenerovane vysledky. Muze mit problem s diversitou.
+}
+
+\subsection{Variational Autoencoders}
+
+\todo{
+    Vybrat z clanku pristupy k generovani skrz VAE.
+    Encoder + Decoder + regularizace latent space, lehke na natrenovani,
+    rychle vysledky, ktere ale jsou casto blurry. Latentni prostor.
+}
+
+\subsection{Diffusion Models}
+
+\todo{
+    Vybrat z clanku pristupy k generovani skrz diffusion.
+    Postupne oddelavani sumu, pomaly trenink a inference,
+    ale dobre diverzni vysledky. Nema latentni prostor.
+    Vybrali jsme si, protoze je to ma dost dobre vysledky
+    a latentni prostor se da pridat, architekturou DAE.
+}
