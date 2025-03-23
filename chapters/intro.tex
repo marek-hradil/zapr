@@ -1,13 +1,26 @@
 % vim: spell spelllang=en
 \chapter{Introduction}
 
-\todo{
-    Tady bude nějaký obecný úvod o tom, proč je potřeba explainabity,
-    tj. bez toho abychom rozuměli DNN je nemůžeme nasadit do safety-critical odvětví,
-    protože nejsme schopni dát bezpečnostní záruky.
-    Jedno z těch odvětví je histopatologie, kde by pokažená diagnostika pacienta mohla být
-    velký špatný.
-}
+Recent advancements in the field of deep neural networks (DNN) became mainstream -
+not only through the eyes of the scientific community but also the general public.
+Large language models, image generators, or coding agents are already an integral part of many tools and workflows,
+rapidly improving their efficiency by making many previously tedious tasks trivial.
+
+The trend of integrating DNNs into all of the areas of human activity is not expected to stop any time soon.
+However, even though DNNs show remarkable flexibility in the possible use cases, their black-box nature and,
+thus, a lack of interpretability still limit them to specific applications with low safety concerns.
+
+Not only are we not able to theoretically grasp the inner workings of DNNs, but we also lack
+any general method of interpreting a concrete, already-trained model. Most importantly, this prevents us from
+bounding the model's behaviour and making any safety guarantees. Therefore, in healthcare, automotive,
+or finance areas where wrong or even unintuitive decisions can have severe consequences, the relevant
+decision-makers and authorities are still hesitant to adopt DNNs.
+\cite{explainable-ai-a-review-of-machine-learning-interpretability-methods}.
+
+One of the areas where DNNs could bring significant improvements,
+provided that we can ensure the pathologist's trust in the systems, is digital histopathology.
+\cite{aggarwal2025artificial}.
+
 
 \section{Digital Histopathology}
 
@@ -17,6 +30,14 @@
     velký rozdíl mezi juniorními a seniorními patology, zároveň AI systémy, které už do odvětví pronikly
     snižují error rate \citneeded. Potom taky trochu o tom, jaké challenges zavádění AI
     do medicíny má, že je důležité aby patologové byli schopni porozumět rozhodnutím a důvěřovali systému.
+}
+
+\section{Application to Histopathology}
+
+\todo{
+    Zamyslet se nad lepsim nazvem.
+    Něco o tom co jsou WSI, co jsou tiles, jaké máme v RationAI již fungující modely
+    a tím pádem, že ty counterfactuals budeme chtít generovat na tilech.
 }
 
 \section{Explainability}
@@ -36,12 +57,4 @@
     Jedna z metod je generování protipříkladů. Popíše se co to vlastně je,
     jaký by měl být ideální end-result. Pak zmínit, že vysvětlitelnost z protipříkladů gut,
     protože se zjistilo, že useři tomu rozumí \citneeded, tj. dává smysl to víc zkoumat a rozvíjet.
-}
-
-\section{Application to Histopathology}
-
-\todo{
-    Zamyslet se nad lepsim nazvem.
-    Něco o tom co jsou WSI, co jsou tiles, jaké máme v RationAI již fungující modely
-    a tím pádem, že ty counterfactuals budeme chtít generovat na tilech.
 }
