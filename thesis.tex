@@ -21,6 +21,13 @@
 \usepackage[pass]{geometry}
 \usepackage{ifdraft}
 
+\usepackage{multicol}
+\usepackage{parskip}
+
+\setlength{\columnsep}{1cm}          % Space between columns
+\setlength{\columnseprule}{0.4pt}    % Thin vertical line between columns
+
+
 % Theorems – add your own environments, should you need them.
 \usepackage{amsthm}
 \newtheorem{theorem}{Theorem}
@@ -56,7 +63,8 @@
 \usepackage[backend=bibtex8,
             sortlocale=en_US,
             bibencoding=UTF8
-            maxnames=100
+            maxnames=100,
+            sorting=none,
            ]{biblatex}
 % XXX: Add your bibliography to bibliography.bib
 \addbibresource{bibliography.bib}
@@ -70,6 +78,7 @@
 \newcommand{\ymref}[2]{\hyperref[#1]{\ref*{#1}.~#2}}
 \newcommand{\todo}[1]{\textbf{TODO:} #1}
 \newcommand{\citneeded}{\textbf{!Citation needed!}}
+\newcommand{\dataset}{the prostate dataset}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
