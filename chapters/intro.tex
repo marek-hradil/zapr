@@ -8,26 +8,24 @@ have already become integral to various workflows,
 streamlining complex tasks and improving productivity across various domains.
 
 This growing integration of DNNs into diverse areas of human activity is expected to continue.
-Despite DNNs impressive versatility, their opaque, black-box nature limits them in safety-critical settings.
-Their lack of interpretability poses a serious challenge: currently we neither fully understand the internal mechanisms, driving their decisions or training,
-to be able to theoretically analyze them, nor we possess methods for interpreting trained models, which would be generalizable and causal.
-As a result, it remains difficult to constrain their behavior or offer safety guarantees -- however, that is an essential requirement in domains such as healthcare, finance, and autonomous driving,
-where incorrect or even just unintuitive decisions can have severe consequences \cite{linardatos2020explainable}.
+Despite DNNs' impressive versatility, their opaque, black-box nature limits them in safety-critical settings.
+Their lack of interpretability poses a serious challenge: currently, we neither fully understand the internal mechanisms driving their decisions or training,
+to be able to analyze them theoretically, nor do we possess methods for interpreting trained models, which would be generalizable and causal.
+As a result, it remains challenging to constrain their behavior or offer safety guarantees -- however, that is an essential requirement in domains such as healthcare, finance, and autonomous driving, where incorrect or even just unintuitive decisions can have severe consequences \cite{linardatos2020explainable}.
 
 Digital histopathology is one such domain where deep learning could bring substantial benefits,
 particularly by improving diagnostic accuracy and efficiency.
 However, the success of these systems relies on the trust of both pathologists and patients.
-This trust can only be established if the models offer interpretable and transparent decision-making processes,
-that could ideally support adjustment if needed.
+This trust can only be established if the models offer interpretable and transparent decision-making processes that could ideally support adjustment.
 
 
 \newpage
 \section{Digital Histopathology}
 
 Histopathology is a branch of medicine focused on the microscopic examination of tissue and cellular structures.
-It plays a critical role in the diagnostic pipeline, enabling pathologists to detect the presence and severity of diseases such as cancer.
+It plays a critical role in the diagnostic pipeline, enabling pathologists to detect the presence and severity of diseases like cancer.
 
-The histopathology workflow begins with the collection of a tissue sample from the patient,
+The histopathology workflow begins with collecting a tissue sample from the patient,
 typically during a surgery, biopsy, or autopsy. The sample is then fixed, usually in some medium such as paraffin,
 and sliced into extremely thin sections. These sections are stained with chemical dyes to highlight particular cell types and tissue structures.
 
@@ -53,8 +51,7 @@ critically, a lack of trust in the models' decision-making processes \cite{aggar
 
 The field concerned with making AI more transparent, interpretable, and ultimately more trustworthy is known as Explainable AI (XAI).
 In safety-critical domains such as healthcare, the ability to understand and audit model decisions is crucial -- not only for pathologists,
-but also for patients, regulatory bodies, and other stakeholders. Moreover, audit and verifiability of AI systems is also required
-from the year 2018 by the European Union's GDPR \cite{goodman2017european}.
+but also for patients, regulatory bodies, and other stakeholders. Moreover, audit and verifiability of AI systems is also required from 2018 by the European Union's GDPR \cite{goodman2017european}.
 
 \newpage
 
@@ -67,8 +64,7 @@ These methods aim to answer key questions such as:
     \item How would the outcome change if certain inputs were different?
 \end{itemize}
 
-To better navigate the landscape of potential methods, and to clearly establish the scope considered in this thesis,
-we begin by introducing a basic taxonomy of XAI approaches \cite{guidotti2018survey}.
+To better navigate the landscape of potential methods, and to establish the scope considered in this thesis, we begin by introducing a basic taxonomy of XAI approaches \cite{guidotti2018survey}.
 
 First, XAI methods can be categorized by the scope of the explanation they provide:
 
@@ -92,7 +88,7 @@ First, XAI methods can be categorized by the scope of the explanation they provi
     \begin{itemize}
         \item \textit{Why did the model make this particular decision?}
         \item \textit{What features influenced this outcome?}
-        \item \textit{How would the prediction change if the input were different?}
+        \item \textit{How would the prediction change if the input differed?}
     \end{itemize}
 \end{multicols}
 
@@ -119,7 +115,7 @@ Finally, methods can be distinguished by their dependency on the model type:
 \begin{multicols}{2}
     \centering \textbf{Model-specific methods} \\[4pt]
     \raggedright
-    These methods are focused on particular class of models (e.g., gradient-based explanations for neural networks).
+    These methods are focused on a particular class of models (e.g., gradient-based explanations for neural networks).
     They often rely on access to model internals such as weights or gradients.
 
     \columnbreak
@@ -133,18 +129,18 @@ Finally, methods can be distinguished by their dependency on the model type:
 Ultimately, our goal is to develop methods that are model-agnostic, post-hoc, and capable of bridging both local and
 global explanations -- a combination sometimes referred to as "glocal" explainability \cite{achtibat2023attribution}.
 
-However, technical properties alone are not sufficient when selecting or designing an XAI method.
-Even the most general and theoretically grounded explanation technique is of little value if it cannot be clearly interpreted and trusted by its intended users.
+However, technical properties alone are insufficient when selecting or designing an XAI method.
+Even the most general and theoretically grounded explanation technique is of little value if its intended users cannot clearly interpret and trust it.
 Explainable AI is therefore not solely a technical challenge, but also a sociotechnical one -- it requires us to evaluate how explanations are perceived,
 understood, and acted upon by users.
 
 
 \section{Counterfactual Explainability}
 
-Counterfactual explanations represent a distinct class of explainability methods that have attracted significant attention in recent years.
-These methods aim to identify what minimal changes to an input are required, in order to flip the model decision.
+Counterfactual explanations represent a distinct class of explainability methods that have attracted significant attention recently.
+These methods aim to identify what minimal changes to an input are required to flip the model decision.
 
-To illustrate the concept with a well-known example, imagine a loan application scenario where model outputs:
+To illustrate the concept with a well-known example, imagine a loan application scenario where the model outputs:
 
 \begin{center}
     \textit{Loan denied.}
@@ -152,15 +148,14 @@ To illustrate the concept with a well-known example, imagine a loan application 
 
 While the decision itself is clear, both the applicant and the bank may also want to understand the reasoning behind it. Which features influenced the decision the most? What would need to change for the applicant to be approved? And by how much?
 
-A counterfactual explanation provides this kind of insight by presenting an alternative scenario that would have led to a different outcome. For instance:
+A counterfactual explanation provides this insight by presenting an alternative scenario that would have led to a different outcome. For instance:
 
 \begin{center}
     \textit{"You were denied the loan because your income was \$30,000.\\
         If it had been \$45,000, you would have been approved."}
 \end{center}
 
-From this explanation, it is evident not only which feature was critical (income),
-but also what minimal action would change the outcome (increasing income to \$45,000).
+From this explanation, it is evident not only which feature was critical (income), but also what minimal action would change the outcome (increasing income to \$45,000).
 Crucially, counterfactual explanations are interpretable \cite{pearl2009causal},
 grounded in theories from cognitive science \cite{byrne2019counterfactuals},
 but also practical -- recent empirical studies have shown that such explanations are often
@@ -174,7 +169,7 @@ To be effective and reliable, counterfactual explanations should also satisfy a 
     \item[Minimality] The change to the input should be as small as possible.
     \item[Similarity] The counterfactual should remain similar to the input.
     \item[Plausibility] The proposed counterfactual should be realistic.
-    \item[Actionability] The changes should be in features user can influence.
+    \item[Actionability] The changes should be in features that the user can influence.
 \end{description}
 
 Several methods have been proposed for generating counterfactuals,
@@ -197,11 +192,9 @@ and a tile-level classifier is trained to predict whether a given tile is benign
 Building on this setup, our goal is to design a model that
 takes a tile and its binary label as input,
 and produces a counterfactual version of the tile -- one that meets the properties outlined in the previous section
-(validity, minimality, similarity, plausibility) except for actionability,
-as no features of the tile can be affected by the patient or pathologist.
+(validity, minimality, similarity, plausibility) except for actionability, as the patient or pathologist cannot affect the tile features.
 
-In practical terms, we envision a workflow where a pathologist,
-using the xOpat platform, can select a tile of interest,
+In practical terms, we envision a workflow where a pathologist, using the xOpat platform, can select a tile of interest,
 trigger the generation of its counterfactual,
 and visually compare the original and counterfactual side by side
 to better understand the basis of the model's decision.
