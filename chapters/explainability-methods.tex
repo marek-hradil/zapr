@@ -1,23 +1,58 @@
 \chapter{Current Methods}
 
-\todo{
-    Promyslet, jestli vubec uvadet ty z dnesniho pohledu uz archaicke metody (WachterCF, LIME-C, SHAP-C),
-    resp. jestli je nejak nespojit do mensi kapitoly.
+This chapter provides a brief overview of existing approaches to generating counterfactual explanations.
+To structure this landscape, we adopt the taxonomy introduced by Chou et al. \cite{chou2022counterfactuals}.
+However, since the main goal of this thesis is not to provide a comprehensive survey,
+but to identify and evaluate a suitable method for our use case, we will focus only on few selected categories.
+Therefore several directions are intentionally excluded from our analysis,
+including approaches based on constraint satisfaction problems, case-based reasoning, or genetic algorithms.
+These methods, while interesting, fall outside the scope of our current investigation.
 
-    Tady bude prehled metod, ktere se daji vyuzit na counterfactuals.
-    Rad bych cerpal z toho, co jsem sepsal do youtracku.
-    \url{https://youtrack.rationai.cloud.e-infra.cz/articles/XAI-A-10/Research}
-    Tu taxonomii si beru z toho prvniho clanku. Zaroven rozebrat,
-    jaky je rozdil mezi intristic explainability a post-hoc explainability,
-    s tim ze se budeme soustredit jen na post-hoc.
-}
+The first three sections in this chapter cover methods that were not considered during method selection,
+as they are now viewed as somewhat outdated. Nevertheless, they include foundational approaches (such as Wachter's counterfactuals or SEDC),
+as well as extensions of popular explainability techniques (like LIME-C and SHAP-C).
+A basic understanding of these methods and their limitations helps
+contextualize the more advanced probabilistic approaches discussed in the final section,
+which form the basis of our selected approach.
 
 \section{Instance-Centric}
 
-\todo{
-    WachterCF, jakozto prvni vic uvadena post-hoc metoda na generovani
-    counterfactuals.
-}
+Also referred to as \emph{optimization-based approaches},
+these methods formulate counterfactual generation as an optimization problem.
+Starting from a given input instance, they iteratively perturb its features to minimize a loss function
+that balances two competing objectives: achieving the desired prediction and remaining close to the original input.
+
+\begin{methodparagraph}
+    \paragraph{WachterCF} \cite{wachter2017counterfactual} was not the first method to introduce counterfactual explanations \cite{cui2015optimal},
+    but it coined the term and remains one of the most cited approaches in the field.
+    The method defines counterfactual generation as the optimization of the following loss function:
+    \begin{align*}
+        \mathcal{L}(x, x', y', \lambda) = \lambda (f(x') - y')^2 + d(x, x')
+    \end{align*}
+    Here, $x$ is the original instance,
+    $x'$ is the counterfactual candidate,
+    $y'$ is the desired target prediction,
+    and $f$ is the classifier.
+    The regularization term $\lambda \in \mathbb{R}^+$ controls the trade-off between
+    achieving desired $y'$ and similarity to the original input.
+    The distance function $d$ is based on the $L_1$ norm.
+
+    Naturally, the objective is then to find a counterfactual $x'$ that minimizes the change,
+    while maximizing $\lambda$ to get to $y'$ as close as possible:
+    \begin{align*}
+        \arg \min_{x'} \max_{\lambda} \mathcal{L}(x, x', y', \lambda)
+    \end{align*}
+
+    For optimization, the authors use the ADAM optimizer,
+    noting that the choice of optimizer does not significantly impact the results.
+\end{methodparagraph}
+
+The main challenge with instance-based optimization methods is ensuring \emph{plausibility}.
+Since these methods have no understanding of which feature changes are realistic,
+the user has to manually specify, which features are allowed to change and which are not.
+While this may be feasible in tabular data, it becomes impractical for image-based applications,
+where it is rarely obvious which pixels should remain fixed.
+
 
 \section{Regression-Centric}
 
