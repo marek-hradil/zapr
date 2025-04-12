@@ -1,4 +1,4 @@
-\chapter{Current Methods}
+\chapter{State of the Art}
 
 This chapter provides a brief overview of existing approaches to generating counterfactual explanations.
 To structure this landscape, we adopt the taxonomy introduced by Chou et al. \cite{chou2022counterfactuals}.
@@ -8,7 +8,7 @@ Therefore several directions are intentionally excluded from our analysis,
 including approaches based on constraint satisfaction problems, case-based reasoning, or genetic algorithms.
 These methods, while interesting, fall outside the scope of our current investigation.
 
-The first three sections in this chapter cover methods that were not considered during method selection,
+The first two sections in this chapter cover methods that were not considered during method selection,
 as they are now viewed as somewhat outdated. Nevertheless, they include foundational approaches (such as Wachter's counterfactuals or SEDC),
 as well as extensions of popular explainability techniques (like LIME-C and SHAP-C).
 A basic understanding of these methods and their limitations helps
@@ -23,8 +23,9 @@ Starting from a given input instance, they iteratively perturb its features to m
 that balances two competing objectives: achieving the desired prediction and remaining close to the original input.
 
 \begin{methodparagraph}
-    \paragraph{WachterCF} \cite{wachter2017counterfactual} was not the first method to introduce counterfactual explanations \cite{cui2015optimal},
-    but it coined the term and remains one of the most cited approaches in the field.
+    \paragraph{WachterCF} \cite{wachter2017counterfactual} was not the first method to introduce counterfactual explanations
+    (sources differ if it was \cite{martens2014explaining} or \cite{cui2015optimal}),
+    but it has popularized the term and remains one of the most cited approaches in the field.
     The method defines counterfactual generation as the optimization of the following loss function:
     \begin{align*}
         \mathcal{L}(x, x', y', \lambda) = \lambda (f(x') - y')^2 + d(x, x')
@@ -56,23 +57,87 @@ where it is rarely obvious which pixels should remain fixed.
 
 \section{Regression-Centric}
 
-\todo{
-    LIME-C, jakozto metoda zalozena na LIME, coz je dost obecne znamy algoritmus.
-    Uprimne nevim, jestli se mi timhle chce travit cas. Realne to asi nikdy moc nebylo ve hre,
-    tohle si vybrat. Stejne jako SHAP-C. Zatim zminuju jen pro uplnost.
-}
+In this family of approaches, a regression model is used to locally approximate the behavior of the original classifier.
+Because regression models, particularly linear ones, are intrinsically interpretable, the learned weights provide insight
+into which features most influence the prediction within a local neighborhood of the input space.
 
-\section{Game Theory Centric}
+By identifying the features with the highest absolute weights in the local surrogate model,
+we can perturb the corresponding features of the original instance to generate a counterfactual.
+The underlying assumption is that the black-box model behaves similarly to the surrogate within this local region. Therefore, altering the most influential features in the original input should lead to a change in the model’s prediction as well.
 
-\todo{
-    SHAP-C
-}
+\begin{methodparagraph}
+    \paragraph{LIME-C} \cite{ramon2020comparison} is an extension of the well-known LIME algorithm \cite{ribeiro2016should},
+    which is widely used in model-agnostic explainability and often introduced in foundational machine learning courses.
+    Since the core principles of LIME are assumed to be familiar,
+    we focus here on its adaptation for counterfactual generation.
+
+    After fitting a local linear surrogate model around an instance \( x \),
+    each feature (or superpixel, in the case of image data) \( x_1, x_2, x_3, \dots \)
+    is assigned a corresponding weight \( w_1, w_2, w_3, \dots \),
+    reflecting its influence on the local prediction.
+
+    LIME-C then adopts a strategy similar to SEDC \cite{martens2014explaining} to identify a counterfactual:
+    \begin{enumerate}
+        \item Sort the features by the absolute value of their weights (importance).
+        \item Iteratively perturb the most influential features -- either by nullifying them (for tabular data) or replacing them with a background value (for superpixels in images).
+        \item After each perturbation, evaluate the original model on the perturbed instance.
+              If the prediction changes, the modified instance is returned as a counterfactual.
+    \end{enumerate}
+\end{methodparagraph}
+
+Unlike methods such as WachterCF, which modify individual pixels, LIME-C operates on superpixels when working on image data.
+This then leads to more plausible but still far from realistic counterfactuals.
+Furthermore, LIME-C does not guarantee minimality, as it perturbs features based on importance rather than optimizing for the smallest change.
+
+\begin{methodparagraph}
+    \paragraph{SHAP-C} Although in the original classification SHAP-C is grouped under game-theoretic approaches,
+    it was introduced in the same paper as LIME-C, shares the same overall structure as LIME-C and is therefore mentioned here for convenience.
+    SHAP-C differs only in how it determines feature importance: instead of relying on a local linear surrogate model like LIME,
+    it uses SHAP \cite{lundberg2017unified} to estimate Shapley values.
+    The rest of the process, ranking features by importance and iteratively removing them until the prediction changes,
+    follows the same SEDC heuristic.
+\end{methodparagraph}
 
 \section{Probability-Centric}
 
+The approaches discussed so far effectively identify which features influence a model's prediction,
+but they fall short in one crucial aspect -- plausibility. While useful for understanding model behavior,
+they are not inherently designed to generate counterfactuals that appear realistic to humans. What is often missing is the ability to transform feature importance into a counterfactual that is not only actionable
+but also indistinguishable from a plausible data sample -- ideally to the point where even a domain expert cannot tell it apart from real training data.
+
+This gap is addressed by probabilistic approaches, particularly those leveraging generative models.
+The probability-centric category therefore includes methods that treat counterfactual generation as a probabilistic problem,
+often (but not exclusively) relying on generative modeling techniques to produce more coherent and realistic examples.
+
+\subsection{Variational Autoencoders}
+
+Early approaches that leveraged the capabilities of generative AI to overcome feasibility constraints
+were primarily based on the autoencoder architecture\footnote{Again, we consider autoencoders standard knowledge
+    from an introductory neural networks course and therefore omit an explanation.}.
+This architecture offered two key advantages: a learned latent space representation that could be meaningfully manipulated,
+and a decoder capable of producing realistic outputs from these latent vectors.
+Both of these properties are central to our further work and will be discussed in more detail later.
+
+However, standard autoencoders are inherently deterministic.
+This means that a given input is always mapped to the same latent embedding
+and consequently to the same output. As a result, there is no motivation
+for the model to organize the latent space in a continuous manner -- that is an undesirable
+property for controlled modifications like generating counterfactuals.
+
+Variational Autoencoders (VAEs) \cite{kingma2019introduction} address this limitation by introducing stochasticity
+into the encoding process. Instead of mapping an input to a single point in latent space,
+a VAE learns the parameters (mean and variance) of a distribution (usually Gaussian) for each input.
+During training and generation, latent vectors are sampled from this distribution.
+
 \todo{
-    Tohle je to, z ceho jsme realne vybirali.
+    Vybrat z clanku pristupy k generovani skrz VAE.
+    Encoder + Decoder + regularizace latent space, lehke na natrenovani,
+    rychle vysledky, ktere ale jsou casto blurry. Latentni prostor.
 }
+
+\cite{downs2020cruds}
+
+\cite{pawelczyk2020learning}
 
 \subsection{Generative Adversarial Networks}
 
@@ -82,13 +147,9 @@ where it is rarely obvious which pixels should remain fixed.
     a rychle nagenerovane vysledky. Muze mit problem s diversitou.
 }
 
-\subsection{Variational Autoencoders}
+\cite{singla2023explaining}
 
-\todo{
-    Vybrat z clanku pristupy k generovani skrz VAE.
-    Encoder + Decoder + regularizace latent space, lehke na natrenovani,
-    rychle vysledky, ktere ale jsou casto blurry. Latentni prostor.
-}
+\cite{rossi2024tace}
 
 \subsection{Diffusion Models}
 
@@ -99,3 +160,7 @@ where it is rarely obvious which pixels should remain fixed.
     Vybrali jsme si, protoze je to ma dost dobre vysledky
     a latentni prostor se da pridat, architekturou DAE.
 }
+
+\cite{atad2024counterfactual}
+
+\cite{vzigutyte2025counterfactual}
