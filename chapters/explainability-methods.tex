@@ -1,66 +1,183 @@
-\chapter{Current Methods}
+\chapter{State of the Art}
 
-\todo{
-    Promyslet, jestli vubec uvadet ty z dnesniho pohledu uz archaicke metody (WachterCF, LIME-C, SHAP-C),
-    resp. jestli je nejak nespojit do mensi kapitoly.
+This chapter provides a brief overview of existing approaches to generating counterfactual explanations.
+To structure this landscape, we adopt the taxonomy introduced by Chou et al. \cite{chou2022counterfactuals}.
+However, since the main goal of this thesis is not to provide a comprehensive survey,
+but to identify and evaluate a suitable method for our use case, we will focus only on few selected categories.
+Therefore several directions are intentionally excluded from our analysis,
+including approaches based on constraint satisfaction problems, case-based reasoning, or genetic algorithms.
+These methods, while interesting, fall outside the scope of our current investigation.
 
-    Tady bude prehled metod, ktere se daji vyuzit na counterfactuals.
-    Rad bych cerpal z toho, co jsem sepsal do youtracku.
-    \url{https://youtrack.rationai.cloud.e-infra.cz/articles/XAI-A-10/Research}
-    Tu taxonomii si beru z toho prvniho clanku. Zaroven rozebrat,
-    jaky je rozdil mezi intristic explainability a post-hoc explainability,
-    s tim ze se budeme soustredit jen na post-hoc.
-}
+The first two sections in this chapter cover methods that were not considered during method selection,
+as they are now viewed as somewhat outdated. Nevertheless, they include foundational approaches (such as Wachter's counterfactuals or SEDC),
+as well as extensions of popular explainability techniques (like LIME-C and SHAP-C).
+A basic understanding of these methods and their limitations helps
+contextualize the more advanced probabilistic approaches discussed in the final section,
+which form the basis of our selected approach.
 
 \section{Instance-Centric}
 
-\todo{
-    WachterCF, jakozto prvni vic uvadena post-hoc metoda na generovani
-    counterfactuals.
-}
+Also referred to as \emph{optimization-based approaches},
+these methods formulate counterfactual generation as an optimization problem.
+Starting from a given input instance, they iteratively perturb its features to minimize a loss function
+that balances two competing objectives: achieving the desired prediction and remaining close to the original input.
+
+\begin{methodparagraph}
+    \paragraph{WachterCF} \cite{wachter2017counterfactual} was not the first method to introduce counterfactual explanations
+    (sources differ if it was \cite{martens2014explaining} or \cite{cui2015optimal}),
+    but it has popularized the term and remains one of the most cited approaches in the field.
+    The method defines counterfactual generation as the optimization of the following loss function:
+    \begin{align*}
+        \mathcal{L}(x, x', y', \lambda) = \lambda (f(x') - y')^2 + d(x, x')
+    \end{align*}
+    Here, $x$ is the original instance,
+    $x'$ is the counterfactual candidate,
+    $y'$ is the desired target prediction,
+    and $f$ is the classifier.
+    The regularization term $\lambda \in \mathbb{R}^+$ controls the trade-off between
+    achieving desired $y'$ and similarity to the original input.
+    The distance function $d$ is based on the $L_1$ norm.
+
+    Naturally, the objective is then to find a counterfactual $x'$ that minimizes the change,
+    while maximizing $\lambda$ to get to $y'$ as close as possible:
+    \begin{align*}
+        \arg \min_{x'} \max_{\lambda} \mathcal{L}(x, x', y', \lambda)
+    \end{align*}
+
+    For optimization, the authors use the ADAM optimizer,
+    noting that the choice of optimizer does not significantly impact the results.
+\end{methodparagraph}
+
+The main challenge with instance-based optimization methods is ensuring \emph{plausibility}.
+Since these methods have no understanding of which feature changes are realistic,
+the user has to manually specify, which features are allowed to change and which are not.
+While this may be feasible in tabular data, it becomes impractical for image-based applications,
+where it is rarely obvious which pixels should remain fixed.
+
 
 \section{Regression-Centric}
 
-\todo{
-    LIME-C, jakozto metoda zalozena na LIME, coz je dost obecne znamy algoritmus.
-    Uprimne nevim, jestli se mi timhle chce travit cas. Realne to asi nikdy moc nebylo ve hre,
-    tohle si vybrat. Stejne jako SHAP-C. Zatim zminuju jen pro uplnost.
-}
+In this family of approaches, a regression model is used to locally approximate the behavior of the original classifier.
+Because regression models, particularly linear ones, are intrinsically interpretable, the learned weights provide insight
+into which features most influence the prediction within a local neighborhood of the input space.
 
-\section{Game Theory Centric}
+By identifying the features with the highest absolute weights in the local surrogate model,
+we can perturb the corresponding features of the original instance to generate a counterfactual.
+The underlying assumption is that the black-box model behaves similarly to the surrogate within this local region. Therefore, altering the most influential features in the original input should lead to a change in the model’s prediction as well.
 
-\todo{
-    SHAP-C
-}
+\begin{methodparagraph}
+    \paragraph{LIME-C} \cite{ramon2020comparison} is an extension of the well-known LIME algorithm \cite{ribeiro2016should},
+    which is widely used in model-agnostic explainability and often introduced in foundational machine learning courses.
+    Since the core principles of LIME are assumed to be familiar,
+    we focus here on its adaptation for counterfactual generation.
+
+    After fitting a local linear surrogate model around an instance \( x \),
+    each feature (or superpixel, in the case of image data) \( x_1, x_2, x_3, \dots \)
+    is assigned a corresponding weight \( w_1, w_2, w_3, \dots \),
+    reflecting its influence on the local prediction.
+
+    LIME-C then adopts a strategy similar to SEDC \cite{martens2014explaining} to identify a counterfactual:
+    \begin{enumerate}
+        \item Sort the features by the absolute value of their weights (importance).
+        \item Iteratively perturb the most influential features -- either by nullifying them (for tabular data) or replacing them with a background value (for superpixels in images).
+        \item After each perturbation, evaluate the original model on the perturbed instance.
+              If the prediction changes, the modified instance is returned as a counterfactual.
+    \end{enumerate}
+\end{methodparagraph}
+
+Unlike methods such as WachterCF, which modify individual pixels, LIME-C operates on superpixels when working on image data.
+This then leads to more plausible but still far from realistic counterfactuals.
+Furthermore, LIME-C does not guarantee minimality, as it perturbs features based on importance rather than optimizing for the smallest change.
+
+\begin{methodparagraph}
+    \paragraph{SHAP-C} Although in the original classification SHAP-C is grouped under game-theoretic approaches,
+    it was introduced in the same paper as LIME-C, shares the same overall structure as LIME-C and is therefore mentioned here for convenience.
+    SHAP-C differs only in how it determines feature importance: instead of relying on a local linear surrogate model like LIME,
+    it uses SHAP \cite{lundberg2017unified} to estimate Shapley values.
+    The rest of the process, ranking features by importance and iteratively removing them until the prediction changes,
+    follows the same SEDC heuristic.
+\end{methodparagraph}
 
 \section{Probability-Centric}
 
-\todo{
-    Tohle je to, z ceho jsme realne vybirali.
-}
+The approaches discussed so far effectively identify which features influßence a model's prediction,
+but they fall short in one crucial aspect -- plausibility. While useful for understanding model behavior,
+they are not inherently designed to generate counterfactuals that appear realistic to humans. What is often missing is the ability to transform feature importance into a counterfactual that is not only actionable
+but also indistinguishable from a plausible data sample -- ideally to the point where even a domain expert cannot tell it apart from real training data.
 
-\subsection{Generative Adversarial Networks}
-
-\todo{
-    Vybrat z clanku pristupy k generovani skrz GAN.
-    Generator vs Discriminator, tezke na trenovani, ale docela dobre
-    a rychle nagenerovane vysledky. Muze mit problem s diversitou.
-}
+This gap is addressed by probabilistic approaches, particularly those leveraging generative models.
+The probability-centric category therefore includes methods that treat counterfactual generation as a probabilistic problem,
+often (but not exclusively) relying on generative modeling techniques to produce more coherent and realistic examples.
 
 \subsection{Variational Autoencoders}
 
-\todo{
-    Vybrat z clanku pristupy k generovani skrz VAE.
-    Encoder + Decoder + regularizace latent space, lehke na natrenovani,
-    rychle vysledky, ktere ale jsou casto blurry. Latentni prostor.
-}
+Early generative approaches that aimed to overcome feasibility constraints often relied on the autoencoder architecture.
+An autoencoder consists of an encoder $e : I \to Z$ and a decoder $d : Z \to I$, where $I$ denotes the input space and $Z$ the latent space. Ideally, the autoencoder $(e,d)$ satisfies:
+\begin{align}
+    x \approx d(e(x))
+\end{align}
+with various loss functions used to minimize reconstruction error.
+
+This architecture provides two key advantages: (1) a learned latent representation $z \in Z$ which allows us to process more semantically meaningful features,
+and (2) a decoder $d : Z \to I$ capable of generating plausible outputs from latent codes.
+Both properties are central to our subsequent work and will be revisited later.
+
+However, standard autoencoders are inherently deterministic. A given input $x$ is always mapped to the same latent embedding $z$,
+and consequently to the same output. As a result, there is no motivation for the model to organize the latent space in a smooth or continuous way -- that is an undesirable property for tasks like counterfactual generation,
+which require controlled, interpretable changes in the latent space.
+
+Variational Autoencoders (VAEs) \cite{kingma2019introduction} address this limitation by introducing stochasticity into the encoding process.
+Instead of mapping an input to a single point in latent space, a VAE learns a distribution (typically Gaussian) over possible latent vectors.
+Specifically, for each input $x$, the encoder produces parameters of a distribution:
+\begin{align*}
+    e(x) = (\mu(x), \sigma(x))
+\end{align*}
+From this distribution, latent vectors are sampled during both training and generation:
+\begin{align*}
+    z \sim \mathcal{N}(\mu(x), \sigma(x))
+\end{align*}
+
+Several methods have leveraged VAEs to generate counterfactuals that are both plausible and informative.
+Notable examples include CRUDS \cite{downs2020cruds} and C-CHVAE \cite{pawelczyk2020learning}.
+These approaches share two core ideas: (1) the use of conditional VAEs, which incorporate label information to guide generation,
+and (2) explicit modification of latent vectors to obtain representations corresponding to counterfactuals. These principles inspire the method we adopt in this work.
+
+Despite their advantages, VAEs are not without drawbacks. A common issue is the generation of blurry outputs, particularly in image domains,
+due to the nature of the probabilistic decoder.
+
+\subsection{Generative Adversarial Networks}
+
+Generative Adversarial Networks (GANs) \cite{goodfellow2020generative} introduce a game-theoretic approach to data generation.
+A GAN consists of two competing neural networks: a generator $g : Z \to I$ that maps latent vectors to data space,
+and a discriminator $d : I \to \{0,1\}$ that aims to distinguish between real data samples and those generated by $g$.
+During training, the generator tries to produce outputs that are indistinguishable from real data, while the discriminator learns to correctly classify inputs as real or fake.
+This adversarial setup drives both networks to improve iteratively.
+
+Several works have leveraged GANs for counterfactual generation, including TACE \cite{rossi2024tace}
+and the Black Box Counterfactual Explainer (BBCE) \cite{singla2023explaining}. These approaches again typically adopt a conditional GAN framework.
+
+A crucial distinction from VAE-based approaches is that, although GANs operate in latent space, they do not inherently learn an encoder from input space to latent space.
+As a result, methods using GANs for counterfactuals often include an additional encoder network to map real data into the latent space.
+Another notable difference lies in how class changes are handled. Whereas VAE-based methods generally require explicit manipulation of the latent vector to induce a change in class,
+conditional GANs often encode the class change directly into the conditioning input, eliminating the need for manual latent vector adjustment.
+
+Despite their advantages, GANs are notoriously difficult to train. The adversarial nature can lead to instability: if either the generator or discriminator significantly outperforms the other, training may block itself.
+Furthermore, the high expressiveness of the generator can be a double-edged sword. Without appropriate regularization or architectural constraints, the generator may collapse to producing a limited subset of outputs, known as mode-collapse, thus failing to capture the diversity of the training distribution.
 
 \subsection{Diffusion Models}
 
-\todo{
-    Vybrat z clanku pristupy k generovani skrz diffusion.
-    Postupne oddelavani sumu, pomaly trenink a inference,
-    ale dobre diverzni vysledky. Nema latentni prostor.
-    Vybrali jsme si, protoze je to ma dost dobre vysledky
-    a latentni prostor se da pridat, architekturou DAE.
-}
+Denoising Diffusion Probabilistic Models (DDPMs), or simply \emph{diffusion models}, represent a third class of generative models, alongside GANs and VAEs~\cite{ho2020denoising}.
+Unlike GANs and VAEs, which attempt to generate images in a single forward pass through a neural network, diffusion models follow a step-by-step, iterative denoising process.
+
+The core idea is to define a fixed number of steps, known as a \emph{noise schedule} $\sigma$, during which Gaussian noise is progressively added to a data sample until it becomes indistinguishable from pure noise. This defines the \emph{forward process} $f : I \times \sigma \to I$. The model is then trained to reverse this corruption in a stepwise manner. Given a noisy image at a particular step, a neural network is trained to predict a slightly less noisy version corresponding to the previous step in the schedule. In doing so, the model learns to reconstruct clean images from noise. We refer to this as the \emph{reverse process}, denoted by $r : I \times \sigma \to I$.
+
+Training a diffusion model thus amounts to learning the reverse process such that, ideally, for every $t \in \sigma$ and every $x \in I$, the following holds:
+\begin{align*}
+    r(f(x, t), t) \approx x
+\end{align*}
+
+To generate a new image, one starts with a sample of pure Gaussian noise and applies the learned reverse process iteratively, ultimately producing a synthetic image that resembles samples from the training distribution. In practice, diffusion models currently achieve state-of-the-art performance in image generation, with their primary drawback being the relatively slow sampling speed due to the iterative nature of the process.
+
+Leveraging diffusion models for counterfactual generation may initially seem unintuitive -- primarily because they do not naturally provide a meaningful latent space. This challenge can be addressed similarly to techniques used with GANs, by introducing an auxiliary encoder $e : I \to Z$ that defines a latent space. This latent representation can then be used to parametrize a conditional version of the DDPM. Recent work such as~\cite{atad2024counterfactual,vzigutyte2025counterfactual} has successfully adopted this approach, using score-based DAE models to generate counterfactuals while maintaining the high generative quality of diffusion models.
+
+In our work, we adopt a similar methodology, which will be described in detail in the following chapter.
