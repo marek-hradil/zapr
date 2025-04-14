@@ -100,7 +100,7 @@ Furthermore, LIME-C does not guarantee minimality, as it perturbs features based
 
 \section{Probability-Centric}
 
-The approaches discussed so far effectively identify which features influence a model's prediction,
+The approaches discussed so far effectively identify which features influßence a model's prediction,
 but they fall short in one crucial aspect -- plausibility. While useful for understanding model behavior,
 they are not inherently designed to generate counterfactuals that appear realistic to humans. What is often missing is the ability to transform feature importance into a counterfactual that is not only actionable
 but also indistinguishable from a plausible data sample -- ideally to the point where even a domain expert cannot tell it apart from real training data.
@@ -173,7 +173,7 @@ The core idea is to define a fixed number of steps, known as a \emph{noise sched
 
 Training a diffusion model thus amounts to learning the reverse process such that, ideally, for every $t \in \sigma$ and every $x \in I$, the following holds:
 \begin{align*}
-    r(f(x, t), t) = x
+    r(f(x, t), t) \approx x
 \end{align*}
 
 To generate a new image, one starts with a sample of pure Gaussian noise and applies the learned reverse process iteratively, ultimately producing a synthetic image that resembles samples from the training distribution. In practice, diffusion models currently achieve state-of-the-art performance in image generation, with their primary drawback being the relatively slow sampling speed due to the iterative nature of the process.
