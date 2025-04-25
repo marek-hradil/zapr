@@ -20,6 +20,9 @@
 \usepackage{float}
 \usepackage[pass]{geometry}
 \usepackage{ifdraft}
+\usepackage{csquotes}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
 
 \usepackage{multicol}
 \usepackage{parskip}
@@ -37,9 +40,6 @@
 \usemintedstyle{friendly}
 \newminted{hs}{autogobble,linenos}
 
-% Algorithms
-\usepackage[Algoritmus]{algorithm}
-
 \usepackage[ unicode=true,
              plainpages=false,
              pdfpagelabels,
@@ -54,6 +54,7 @@
            ]{hyperref}
 
 \usepackage{mdframed}
+\usepackage[colorinlistoftodos]{todonotes}
 
 \newmdenv[
     linecolor=black!30,
@@ -94,9 +95,13 @@
 %       v \ymref{somelabel}{kapitole} → v 5. kapitole
 \newcommand{\myref}[2]{\hyperref[#2]{#1~\ref*{#2}}}
 \newcommand{\ymref}[2]{\hyperref[#1]{\ref*{#1}.~#2}}
-\newcommand{\todo}[1]{\textbf{TODO:} #1}
 \newcommand{\citneeded}{\textbf{!Citation needed!}}
-\newcommand{\dataset}{the prostate dataset}
+\newcommand{\images}{M}
+\renewcommand{\todo}[2][]{%
+  \todo[inline, color=blue!10!white, #1]{#2}%
+}
+
+\interfootnotelinepenalty=10000
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
@@ -114,7 +119,8 @@
 \input{chapters/intro}
 \input{chapters/explainability-methods.tex}
 \input{chapters/diffusion-autoencoders.tex}
-\input{chapters/experiments.tex}
+\input{chapters/implementation.tex}
+\input{chapters/evaluation.tex}
 \input{chapters/discussion.tex}
 \appendix
 

@@ -1,0 +1,24 @@
+\chapter{Implementation}
+
+With the necessary theory in place, we can now show how the project was implemented. To maintain the explanatory style of this work, we begin with an overview that captures the big picture -- what components had to come together for the solution to function effectively. After that, we delve into the specific details to clarify any potential ambiguities.
+
+\section{Technology Stack}
+
+Our implementation was primarily built using the Python ecosystem, with PyTorch as the main ML framework. To make the solution work, three key components needed to be developed or sourced: the dataset, the classifier, and the DAE.
+
+The DAE was kindly provided by Robert Harb, to whom I am very grateful. While we could have used the official implementation of the diffusion autoencoder, available at \url{https://github.com/phizaz/diffae}, Robert’s \texttt{path\_diffusion} model offered two important advantages.
+
+First, it was already trained on the TCGA-BRCA breast cancer dataset. This allowed us to skip the DAE training phase, which would have required a significant amount of time and computational resources. Second, the model didn’t use the standard DDIM approach. Instead, it relied on the Karras denoiser, which features a modified noise schedule designed to improve image quality. 
+
+This setup, however, comes with a trade-off: it is not deterministic like DDIM. As a result, the DAE does not always reconstruct the exact same image from a given semantic code and noise. We addressed this issue later in the implementation.
+
+When it came to the dataset, TCGA-BRCA would have been the obvious choice. Unfortunately, it lacks the necessary annotations. Fortunately, the RationAI laboratory had already preprocessed and tiled the HER2 dataset, another breast cancer dataset, which made it a suitable alternative. We adapted this dataset for our use.
+
+Along with the dataset, RationAI also had a simple toy classifier for the image tiles. While it was mostly intended as a proof-of-concept, we have trained it to achieve reasonable performance, which was sufficient for our purposes.
+
+With these components in hand, we could assemble the solution -- connecting all the parts, integrating the separator model, running the optimization process, and incorporating the evaluation metrics.
+
+\section{Dataset}
+
+\section{Classifier}
+

@@ -1,34 +1,265 @@
 \chapter{Generating Counterfactuals}
 
-\todo{
-    V tehle kapitole se bude vic do detailu probirat,
-    jak funguji diffusion modely a jakym zpusobem se pak daji
-    vyuzit na to, abychom vygenerovali couterfactuals.
+So far, we’ve chosen to work with diffusion-based methods.
+In this chapter, we’ll walk through our selected approach to generating counterfactuals.
+We will start by providing an overview of the main idea. Some of the terms may not be fully clear at this point; we’ll define them as we go. However, seeing the bigger picture first should help make sense of the more technical parts later on.
+
+Once we’ve laid out the idea, we’ll dig into the details. We’ll explain what a latent space is, what diffusion models are, the different types that exist, and how we can combine them with autoencoders in a way that gives us a meaningful latent space. This will also give further options and requirements on what our model should look like. We will therefore refine the model as we proceed, until we arrive at a variant that satisfies all of our laid-out requirements.
+
+Toward the end, we’ll introduce a topic that might seem unrelated at first: concepts and concept vectors from the explainable AI literature. We will demonstrate how these ideas relate to our method and how this connection opens up new possibilities for generating counterfactuals. This will also serve as a final revisit of the overall concept. Now with all the technical details in place, it will allow us to bring everything together and hopefully clear up any remaining ambiguities.
+
+\section{Understanding the Approach}
+
+First, let us denote the set of all square images of a side $n \in \mathbb{N}$:
+\begin{align*}
+    \mathbb{R}^{d} \quad \text{where } d = n \cdot n \cdot 3
+\end{align*}
+The set of all possible tiles $T$:
+\begin{align*}
+    T \subseteq \mathbb{R}^d
+\end{align*}
+And the set $D$ of all possible tiles with their true labels:
+\begin{align*}
+    D = \{ (x,l) \mid x \in T, l \in \{0,1\}\}
+\end{align*}
+We will also denote the tile-classifier $c$ as:
+\begin{align*}
+   c : \mathbb{R}^d \to \{0,1\}
+\end{align*}
+
+\paragraph{Formalizing the goal}
+Keep in mind, that formally we are in a search for a model $m : \mathbb{R}^{d} \to T$, which satisfies validity:
+\begin{align*}
+    \forall (x,l) \in D: c(m(x)) = 1 - l
+\end{align*}
+minimality:
+\begin{align*}
+    \forall (x, l) \in D, (x', l') \in D:  (l' = 1 - l) \implies d(m(x), x) \leq d(x', x)
+\end{align*}
+and plausibility:
+\begin{align*}
+    Im(m) \subseteq T
+\end{align*}
+
+
+\paragraph{Linearly separable images} Now, let us begin with a simpler case. Suppose all of our tiles are linearly separable. This means that, there exists a \emph{separator} model $s_w : \mathbb{R}^d \to \{0, 1\}$ with weights $w \in \mathbb{R}^d$ which satisfies:
+\begin{align*}
+    \forall (x_i, l_i) \in T:\, s_w(x_i) = l_i
+\end{align*}
+and this separator model is linear, meaning:
+\begin{align*}
+    s_w(x) = \textbf{1}_{w \cdot \tilde{x} \geq 0}
+\end{align*}
+where $\tilde{x} = (1, x_0, \dots, x_d)$ and $\textbf{1}$ being indicator variable.
+
+In such a scenario, finding a counterfactual becomes relatively straightforward. Given a sample $(x, l) \in T$, we can follow the direction of the weight vector $w$ or its inverse $-w$ to find the direction in which we should modify $x$ in order to flip its label. More formally, this gives us the formula for our first counterfactual model $m$:
+\begin{align*}
+    m(x) = x + \beta \cdot w
+\end{align*}
+for some step size $\beta \in \mathbb{R}$ which is chosen as:
+\begin{align*}
+    \beta = \min \{ \beta_i \in \mathbb{R} \mid c(m(x)) = 1 - l\}
+\end{align*}
+This satisfies validity and minimality; however, it still lacks several important qualities:
+\begin{itemize}
+    \item we cannot ensure that $x$ is plausible, so it can happen that $x \notin T$
+    \item we assume linear separability, which is a strong simplification.
+\end{itemize}
+
+To address these limitations, machine learning models often attempt to project the original input space $\mathbb{R}^d$ into another space with a simpler or more structured geometry. A classic example is the use of kernel methods in support vector machines (SVM), where a kernel function implicitly maps the data to a higher-dimensional space to make it linearly separable.
+
+\paragraph{Latent space separable images} What would help us significantly is thus some kind of a vector space $Z$,
+which would be linearly separable, allowing us to project the images into it. This is where autoencoders come into play -- they provide us with such a space $Z$, along with an encoder $e : \mathbb{R}^d \to Z$ and a decoder $d: Z \to T$. These allow us to encode our tiles into a lower-dimensional space and decode them back, ideally without significant loss of information. We refer to the space $Z$ as the \emph{latent space}, and to its vectors $z \in Z$ as \emph{semantic codes} or more generally, \emph{embeddings}.\footnote{The term \enquote{latent} also has a rich history in psychology, where it refers to latent variables -- unobservable concepts such as intelligence or anxiety, which manifest themselves through other signs. This maps well to our use of latent representations in machine learning, where the goal is to capture meaningful, though hidden, factors of variation in the data.}
+
+We will therefore define an autoencoder as a tuple $(e,d)$, such that:
+\begin{align*}
+    e : \mathbb{R}^d \to Z \quad d : Z \to T
+\end{align*}
+which has to satisfy:
+\begin{align*}
+    d \circ e = \textit{id}_T
+\end{align*}
+With such an autoencoder and a latent space in hand, we can adapt the trivial approach shown earlier. We will have to refine our model $m$ and also the separator $s_w$. First, let us redefine the separator to be:
+\begin{align*}
+    s_w: Z &\to \{0,1\} \\
+    s_w(z) &= \textbf{1}_{w \cdot \tilde{z}} 
+\end{align*}
+which satisfies:
+\begin{align*}
+    \forall (x,l) \in D: s_w(e(x)) = l
+\end{align*}
+Also, our counterfactual model $m$ should be refined:
+\begin{align*}
+    m(x) = d(e(x) + \beta w)
+\end{align*}
+with beta again chosen as $\beta = \min \{ \beta_i \in \mathbb{R} \mid c(m(x)) = 1 - l\}$. Validity and minimality are again satisfied by the selection of $\beta$. \todo{Není pravda, je potřeba ještě přidat constraints na to jak se chová $e$ a $d$}
+However, last of our earlier stated concerns remains -- even in the latent space $Z$ the embeddings do not have to be linearly separable. In this case, current methods do not have an elegant solution.
+
+
+\paragraph{Non-linearly separable latent space images}
+We will incorporate this by introducing a sense of \enquote{confidence factor} to our separator -- instead of using perceptron, we will use logistic regression. The definition of a separator will be further refined to:
+\begin{align*}
+    s_w : Z &\to [0,1]\\
+    s_w(z) &= \frac{1}{1 + e^{-w \cdot z}}
+\end{align*}
+for which we will maximize the accuracy, so we will choose $w$ such that:
+\begin{align*}
+    w = \max\left\{ w_i \in \mathbb{R}^{(\dim Z)} \mid \frac{|\{ (x, l) \in D \mid s_w(x) = l\}|}{|D|} \right\}
+\end{align*}
+Notice that we have lost the easy interpretation of weights $w$ as the vector perpendicular to the boundary. However,
+since $s_w$ is now differentiable, we can adjust our model:
+\begin{align*}
+    m(x) = d(e(x) + \beta \cdot \nabla s_w)
+\end{align*}
+where beta is selected as $\beta = \min \{ \beta_i \in \mathbb{R} \mid c(m(x)) \geq \alpha \}$
+\todo{Jak vyjádřit alpha tak aby podporavalo obe tridy?}
+
+With this idea in mind, we will delve further into the details, specifically, how to construct the autoencoder $(e,d)$ from diffusion models and how to compute the $\beta$.
+
+
+\section{Diffusion Models}
+
+In the previous chapter, we intuitively described diffusion models using the tuple $(f, r)$, where $f$ is the forward process, and $r$ is the reverse process. The basic idea was:
+\begin{align*}
+    f : \mathbb{R^d} \to \mathbb{R}^d \quad r : \mathbb{R}^d \to T
+\end{align*}
+such that $f$ and $r$ satisfy, that for every $x \in T$:
+\begin{align*}
+    \forall t \in I : \, r(t, f(t, x)) = x
+\end{align*}
+
+This abstract notion is then realized as such: we start with an image $x$, gradually add noise through $f$, and then use $r$ to try to recover the original image from the noisy version. At the end of the forward process, we end up with pure Gaussian noise. The reverse process then learns how to turn that noise back into a meaningful image.
+
+While this captures the core idea, it’s still a simplification. To explain our approach clearly, we need to be much more precise. That means taking a step back and formalizing our intuitive notions and clearly describing what $f$ and $r$ should satisfy.
+
+\paragraph{Formalizing the goal}
+
+Let’s begin by defining the space we’re working in. Let $(\Omega, \mathcal{F})$ be a measurable space, where:
+\begin{align*}
+    \Omega = \images \quad \mathcal{F} = \sigma(\images)
+\end{align*}
+Here, $\sigma(\images)$ refers to the Borel $\sigma$-algebra on $\images$, which is the standard way to define measurable subsets in this context. We will then define the set of all probability distributions over $\Omega$:
+\begin{align*}
+    \mathcal{P}(\Omega) = \{ \mu \in \mathcal{M}(\Omega) \mid \mu(\Omega) = 1 \}
+\end{align*}
+This means we’re looking at all measures $\mu$ over $\Omega$ that assign total mass 1, which makes them valid probability distributions. The other required properties of non-negativity and countable additivity are already assumed in $\mathcal{M}(\Omega)$.
+
+Given an initial distribution $p_{init} = \mathcal{N}(0, I^d)$ and chosen target distribution
+$p_{target} \in \mathcal{P}(\Omega)$ to find such diffusion model $(f,d)$ which satisfies:
+\begin{align*}
+    X_0 \sim p_{init} &\implies r(1, X_0) \sim_{target} \\
+    X_1 \sim p_{target} &\implies f(1, X_1) \sim p_{init}
+\end{align*}
+
+\paragraph{Finding forward process} Finding $f$ is not challenging.
+However, before we do that, we will introduce Brownian motion.
+Brownian motion is a stochastic process $W_t$ with $t \in [0,1]$,
+where two conditions hold. First, increments are normal --
+for all $0 \leq s < t$ it holds:
+\begin{align*}
+    W_t - W_s \sim \mathcal{N}(0, (t-s)I^d)
+\end{align*}
+Secondly, the steps are independent. So for any $0 \leq t_0 < \dots < t_k = 1$ it holds:
+\begin{align*}
+    W_{t_1} - W_{t_0}, \dots, W_{t_k} - W_{t_{k-1}} \text{ are independent}
+\end{align*}
+With this, the forward process can be just:
+\begin{align*}
+    f (t, X) = (1-t) \cdot X + W_t
+\end{align*}
+which should continuously deform the image and satisfy $f(1,X) \sim \mathcal{N}(0, I^d)$.
+
+\paragraph{Finding the reverse process} Finding the right $r$ is much more challenging,
+and here we can utilize the power of DNNs. For such a task, we will employ the perspective of
+ordinary differential equations (ODEs) and later on the stochastic differential equations (SDEs).
+
+Before diving in and defining what ODE is, we should ask ourselves what the motivation is behind employing such a theory.
+First of all, it gives us a very nice graphical interpretation of the generative process -- this will be very useful.
+
+Second, the solution to an ODE is trajectory, which is a specific function of type $I \to \mathbb{R}^d$. If we then broaden the view to include a trajectory for every point, we get a flow which is again a specific function of type $I \times \mathbb{R}^d \to \mathbb{R}^d$. Observe, that the flow has the same type as the reverse process $r$ we are looking for. We will thus utilize this theory to find an ODE/SDE whose associated flow satisfies our notion of a reverse process, meaning that a flow $\psi$ will satisfy:
+\begin{align*}
+    X \sim p_{init} \implies \psi(1, X) \sim p_{target}
+\end{align*}
+
+An ODE is given by a \emph{vector field}. A vector field $u$ is:
+\begin{align*}
+    u : I \times \mathbb{R}^d \to \mathbb{R}^d
+\end{align*}
+Intuitively, a vector field should tell us for every time $t \in I$ and a point in space $x \in \mathbb{R}^d$ in which direction $u(t,x)$ we should go.
+A \emph{trajectory} is a solution to an ODE that goes along this path. Let $X$ be a trajectory:
+\begin{align*}
+    X : I \to \mathbb{R}^d
+\end{align*}
+Then it has to satisfy a starting point $x_0$:
+\begin{align*}
+    X(0) &= x_0 \\
+    \frac{d}{dt} X(t) &= u(X(t))
+\end{align*}
+A \emph{flow} $\psi$ is then a function, which enables us to look at all the trajectories:
+\begin{align*}
+    \psi : I \times \mathbb{R}^d \to \mathbb{R}^d \\
+\end{align*}
+which has to satisfy for any $x \in \mathbb{R}^d$:
+\begin{align*}
+    \psi(0, x) &= x\\
+    \frac{d}{dt} \psi(t, x) &= u(t, \psi(t, x))
+\end{align*}
+
+Finding our reverse process will now mean finding an ODE, whose flow satisfies the requirements.
+But since ODEs are given as vector fields, finding a correct vector field would suffice. We do not know how to construct such field explicitly for a given training set, however we can train a DNN to approximate the ideal vector field $u$. We will therefore denote the ideal vector field as $u^{target}$ and our model vector field as $u_\theta$ where $\theta$ are its parameters.
+
+Training such field requires minimizing some loss function $\mathcal{L}$ which can be for example a mean squared error:
+\begin{align*}
+    \mathcal{L}(\theta) = \frac{1}{n} \sum_{i = 1}^n (u^{target}(x_i) - u_\theta(x_i))^2
+\end{align*}
+To utilize such loss, we however would need to know how to compute the $u^{target}$. That is however quite advanced and as we have not trained a diffusion model ourselves in this work, we will not focus on how to do that.
+
+\paragraph{Sampling}
+After training $u_\theta$ we can start to sample from our diffusion model. This equals to solving the ODE -- for a general ODE that is however often an impossible task.
+
+First, does such a solution always exist? Fortunately, yes. Flow existence and uniqueness theorem guarantees us, that if $u$ is continuously differentiable with bounded derivatives, then there exists a unique solution given by some flow $\psi$. Later on, it will be also important that $\psi$ is continuously differentiable and has continuously differentiable inverse $\psi^{-1}$. As neural networks satisfy these requirements, we can guarantee that a unique solution exists.
+
+Secondly, if solving ODE explicitly is not possible, we have to approximate. This will be done through means of numerical methods. One way to do this is by employing Euler method:
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+
+\caption{Euler method}
+
+\Input{Vector field $u_\theta$, number of steps $n$}
+\Output{End of trajectory $X(1)$}
+
+\BlankLine
+
+Let \(t \gets 0 \) \;
+Let step size \(h \gets \frac{1}{n} \) \;
+Let start sample \(X \sim p_{init} \)\;
+
+\For{\(i \gets 1\) \KwTo \(n - 1\)}{
+    \(X \gets X + h u^\theta(t, X) \) \;
+    \(t \gets t + h \) \;
 }
 
-\section{Latent Space}
+\Return{X}
+\end{algorithm}
 
-\todo{
-    Ctenar uz zna diffusion modely a v prechozi kapitole jsme
-    trosku nakousli problem s tim, ze ne vsechny vytvari latentni prostor.
-    Tady vysvetlime co latentni prostor je a proc je nam dobry -
-    skrz jeho manipulaci jsme schopni posouvat se mezi ruznymi
-    obrazky.
-}
+Essentially, this algorithm follows the direction of the vector flow for $n$ steps of size $\frac{1}{n}$ until it arrives at some endpoint.
 
-\section{DDPM and DDIM}
+\paragraph{Adding Stochasticity} So far, we have only utilized ODE theory to find flows. The whole process, except for choosing the initial noise, is deterministic. Typically, these models are referred to as \emph{flow models}, given by:
+\begin{align*}
+    X(0) &\sim p_{init} \\
+    \frac{d}{dt} X(t) &= u^\theta(t, X(t))
+\end{align*}
+They bring many benefits, but they lack in image generation quality. To improve that, we can move to true diffusion models by adding random noise to the ODE, transforming it to an SDE, which satisfies:
+\begin{align*}
+    X(0) &= x_0 \\
+    dX(t) &= u(t, X(t))dt + \sigma(t)dW_t
+\end{align*}
+\todo[inline]{Tohle nechapu asi uplne dobre, probrat.}
 
-\todo{
-    Nasledne popiseme, jak funguji DDPM (klasicka varianta difuze)
-    a proc presne netvori zadny latentni prostor - duvod je prave to, ze
-    obrazek se nevygeneruje najednou, ale v postupnych iteracich
-    a v tom, ze DDPM je v podstate Markov Chain, takze kvuli
-    nahodnosti neni latentni prostor tak stabilni.
-    To se da vyresit skrz DDIM, ktere jsou deterministicke, vic jako ODE
-    a pokryji problem s nahodnosti.
-}
-
-\section{DAE}
+\section{Diffusion Autoencoder}
 
 \todo{
     Problem s postupnymi iteracemi vyresime skrz DAE - dodame
@@ -36,16 +267,11 @@
     Tady popiseme architekturu DAE.
 }
 
-\section{Incorporating Logistic Regression}
+\section{Optimization Method}
 
-\todo{
-    V tehle kapitole to slepime dohromady. DAE na vygenerovani encodings,
-    pak nad latentnim prostorem fitnuti regrese, jeji derivace a posun
-    v smeru gradientu, dokud nedosahnu urcite presnosti klasifikatoru.
-    Pak znovu pouziti DAE, aby z encodingu vytvorilo obrazek.
-}
+\todo{Jak urcujeme jak daleko jit pres tu boundary?}
 
-\section{CAV}
+\section{Concept Activation Vectors}
 
 \todo{
     Tohle si nechavam jako pripadny pridavek. Trosku jsem koukal na
@@ -55,3 +281,5 @@
     ale takovy counterfactual, ktery obsahuje urcity koncept.
     Uvidime jestli stihnu, ale nemuselo by byt slozite.
 }
+
+\todo{Tohle asi nestiham, kod mam vyrobeny ale nefunguje.}
